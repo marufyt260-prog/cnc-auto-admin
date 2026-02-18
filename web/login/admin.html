@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — CNC AUTO DESIGN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b1220;color:#eef2ff}
+    header{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid #1e293b;background:#0f172a;flex-wrap:wrap}
+    .brand{display:flex;gap:5px;align-items:center}
+    .brand img{width:34px;height:34px;border-radius:8px;box-shadow:0 0 0 2px rgba(96,165,250,.35)}
+    .brand b{letter-spacing:.3px;color:#eef2ff}
+    .search{flex:1;display:flex;justify-content:center}
+    .search input{width:100%;max-width:420px;height:38px;border-radius:10px;border:1px solid #233144;background:#0b1220;color:#eef2ff;padding:8px 12px}
+    .auth{display:flex;gap:12px;align-items:center}
+    .avatar{width:30px;height:30px;border-radius:6px;border:1px solid #1e293b;object-fit:cover;box-shadow:0 0 0 2px rgba(96,165,250,.25)}
+    /* Small 3D ring box on header right */
+    .hdr-3d{position:relative;width:38px;height:28px;border:1px solid #1e293b;border-radius:6px;overflow:hidden}
+    .hdr-3d .ring{position:absolute;left:-1px;top:-1px;width:calc(100% + 2px);height:calc(100% + 2px);pointer-events:none}
+    .hdr-3d svg{width:100%;height:100%;filter:drop-shadow(0 0 1px rgba(34,197,94,.18))}
+    .hdr-3d .bars{position:absolute;inset:0;display:grid;place-items:center}
+    .hdr-3d .bars span{display:block;width:14px;height:2px;background:#e5e7eb;margin:2px 0;border-radius:2px;box-shadow:0 1px 0 rgba(0,0,0,.2)}
+    /* Left sidebar menu */
+    .side-overlay{position:fixed;inset:0;display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:65}
+    .side-panel{position:absolute;left:0;top:0;height:100%;width:270px;background:linear-gradient(180deg,#4f46e5,#9333ea 60%, #f472b6);color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);transform:translateX(-110%);transition:transform .25s ease}
+    .side-overlay.show .side-panel{transform:translateX(0)}
+    .side-head{display:flex;gap:10px;align-items:center;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .side-list{padding:12px}
+    .side-item{display:flex;align-items:center;gap:10px;color:#eef2ff;text-decoration:none;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));box-shadow:0 6px 16px rgba(0,0,0,.25);margin-bottom:10px}
+    .side-item:hover{filter:brightness(1.05)}
+    .side-foot{position:absolute;left:12px;right:12px;bottom:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:12px}
+    .badge{margin-left:auto;background:rgba(255,255,255,.15);padding:2px 8px;border-radius:999px;font-size:12px}
+    /* Header slide-down modal */
+    .top-overlay{position:fixed;inset:0;display:none;place-items:flex-start;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:60}
+    .top-panel{position:relative;margin:10px auto 0;max-width:820px;width:92%;background:#0f172a;border:1px solid #1e293b;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.55);overflow:hidden;animation:drop .25s ease}
+    @keyframes drop{from{opacity:.3;transform:translateY(-18px)} to{opacity:1;transform:none}}
+    .top-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1e293b}
+    .top-body{padding:12px 14px;display:grid;gap:10px}
+    .top-item{display:flex;justify-content:space-between;align-items:center;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:10px}
+    .link{color:#93c5fd;text-decoration:none}
+    /* Nested list modal for Active users */
+    .mini-overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:70}
+    .mini-card{max-width:520px;width:92%;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+    /* Insights styling */
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+    .kpi{background:#0b1220;border:1px solid #233144;border-radius:10px;padding:10px}
+    .kpi .label{font-size:11px;color:#9aa6b2;margin:0 0 6px}
+    .kpi .value{font-weight:700;color:#e2e8f0}
+    .legend{display:flex;gap:14px;align-items:center;font-size:12px;color:#cbd5e1;margin:6px 0}
+    .legend .dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:6px}
+    .xlabels{display:flex;justify-content:space-between;color:#94a3b8;font-size:11px;margin-top:4px}
+    .meta-head{width:100%;display:grid;grid-template-columns:1.2fr 1.6fr auto auto;gap:8px;align-items:center;margin-top:8px;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:8px 10px;color:#cbd5e1;font-size:12px}
+    a{color:#93c5fd;text-decoration:none}
+    .wrap{max-width:850px;margin:0 auto;padding:16px;display:grid;gap:16px}
+    .card{background:transparent;border:0;border-radius:0;padding:0}
+    .muted{color:#94a3b8}
+    /* Mobile-first admin list */
+    .m-list{display:grid;gap:12px}
+    .m-item{position:relative;background:#0b1220;border:1px solid #1e293b;border-radius:0;padding:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);display:grid;grid-template-columns:1.2fr 1.6fr auto auto;gap:8px;align-items:center;overflow:hidden}
+    .m-item .ring-wrap{position:absolute;left:-8px;top:-1px;width:calc(100% + 16px);height:calc(100% + 2px);pointer-events:none;overflow:visible}
+    .m-item .ring-wrap svg{width:100%;height:100%;filter:drop-shadow(0 0 1px rgba(34,197,94,.18))}
+    .sum-head{display:grid;grid-template-columns:1.1fr 1.3fr 1fr 1fr;gap:8px;align-items:center;margin:6px 0 10px;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:8px 10px;color:#cbd5e1;font-size:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .full{grid-column:1/-1}
+    .label{font-size:11px;color:#9aa6b2;margin:0 0 4px}
+    .field{height:40px;border-radius:8px;border:1px solid #233144;background:#0b1220;color:#eef2ff;padding:8px 10px;font-size:14px;width:100%}
+    .pill{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #233144;background:#0b1220;color:#cbd5e1}
+    /* Make Name and Email text green (accounting for ring-wrap as first child) */
+    .m-item > div:not(.ring-wrap):nth-child(2) .pill,
+    .m-item > div:not(.ring-wrap):nth-child(3) .pill{color:#22c55e}
+    .btn{appearance:none;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
+    .btn-approve{background:linear-gradient(180deg,#22c55e,#059669);color:#052016}
+    .btn-deny{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#3b0a0a}
+    .btn-outline{background:transparent;border:1px solid #233144;color:#cbd5e1}
+    .btn-dot{width:40px;height:36px;border-radius:10px;border:0;background:linear-gradient(180deg,#ef4444,#b91c1c);color:#3b0a0a;font-weight:800;display:inline-grid;place-items:center;box-shadow:0 6px 14px rgba(239,68,68,.3)}
+    .btn-dot:hover{filter:brightness(1.05)}
+    /* Modal */
+    .overlay{position:fixed;inset:0;display:none;place-items:center;padding:24px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:50}
+    .dialog{position:relative;width:100%;max-width:520px;background:#0f172a;border:1px solid #1e293b;border-radius:14px;box-shadow:0 28px 90px rgba(0,0,0,.6);padding:16px;color-scheme:light}
+    .dialog h3{margin:0 0 10px}
+    .dialog .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .dialog .actions{display:flex;gap:8px;margin-top:12px}
+    .sm{height:36px;padding:0 10px;border-radius:8px}
+    /* Light date inputs inside modal */
+    .dialog .field[type="date"]{background:#ffffff;color:#0b0b0b;border:1px solid #d1d5db}
+    .dialog input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0)}
+    @media (min-width:720px){
+      .row{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="../cnc_auto_design.png" onerror="this.style.display='none'" alt="Logo"/>
+      <b>ADMIN</b>
+    </div>
+  <!-- Payments summary modal -->
+  <div id="payStatsOverlay" class="mini-overlay" onclick="if(event.target.id==='payStatsOverlay'){closePaymentStats()}">
+    <div class="mini-card">
+      <h3 style="margin:0 0 8px">Payments Summary</h3>
+      <div id="pay-stats" class="m-list" style="max-height: fiftyvh; overflow:auto"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-outline sm" onclick="closePaymentStats()">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Insights modal -->
+  <div id="insightsOverlay" class="mini-overlay" onclick="if(event.target.id==='insightsOverlay'){closeInsights()}">
+    <div class="mini-card">
+      <h3 style="margin:0 0 8px">Growth Insights</h3>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Today</div><div id="kpi-today" class="value">0</div></div>
+        <div class="kpi"><div class="label">This Month</div><div id="kpi-month" class="value">0</div></div>
+        <div class="kpi"><div class="label">Projected 30 days</div><div id="kpi-proj" class="value">0</div></div>
+      </div>
+      <div id="insights" style="display:grid;gap:10px">
+        <div class="legend">
+          <span><span class="dot" style="background:#22c55e"></span>Actual</span>
+          <span><span class="dot" style="background:#60a5fa"></span>Projection</span>
+          <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+            <select id="insights-range" class="field" style="height:30px;padding:4px 8px;width:auto">
+              <option value="7">Last 7 days</option>
+              <option value="14" selected>Last 14 days</option>
+              <option value="30">Last 30 days</option>
+            </select>
+            <button class="btn btn-outline sm" onclick="buildInsights()">Update</button>
+          </div>
+        </div>
+        <svg id="insights-chart" viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%;height:140px;background:#0b1220;border:1px solid #233144;border-radius:8px">
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#22c55e" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polyline id="insights-actual" fill="none" stroke="#22c55e" stroke-width="2" points=""/>
+          <polyline id="insights-proj" fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-dasharray="3 3" points=""/>
+          <polygon id="insights-area" fill="url(#areaGrad)" points=""/>
+        </svg>
+        <div class="xlabels" id="insights-x"></div>
+        <div id="insights-summary" class="muted" style="font-size:12px"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-outline sm" onclick="closeInsights()">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Settings modal -->
+  <div id="settingsOverlay" class="mini-overlay" onclick="if(event.target.id==='settingsOverlay'){closeSettings()}">
+    <div class="mini-card">
+      <h3 style="margin:0 0 8px">Settings</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label class="label">Basic Plan Price (৳)</label>
+          <input id="set-price-6" class="field" type="number" value="5000" min="0" step="100" />
+        </div>
+        <div>
+          <label class="label">Premium Plan Price (৳)</label>
+          <input id="set-price-12" class="field" type="number" value="10000" min="0" step="100" />
+        </div>
+      </div>
+      <div class="full">
+        <div class="label">bKash Number</div>
+        <input id="set-bkash" class="field" value="017XXXXXXXX" />
+      </div>
+      <div class="full">
+        <div class="label">Nagad Number</div>
+        <input id="set-nagad" class="field" value="017XXXXXXXX" />
+      </div>
+      <div class="full">
+        <div class="label">Debit Card Number</div>
+        <input id="set-debit-card" class="field" value="4111 1111 1111 1111" />
+      </div>
+      <div class="full">
+        <div class="label">Master Card Number</div>
+        <input id="set-master-card" class="field" value="5111 1111 1111 1111" />
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:8px">
+        <button class="btn btn-outline sm" onclick="closeSettings()">Cancel</button>
+        <button class="btn btn-approve sm" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+    <div class="search">
+      <input id="admin-search" type="search" placeholder="Search users by name, email, phone or TRX" autocomplete="off"/>
+    </div>
+    <div class="auth">
+      <img class="avatar" src="./cnc_auto_design.png" onerror="this.style.display='none'" alt="Profile"/>
+      <div class="hdr-3d" aria-label="Menu" onclick="openSideMenu()">
+        <div class="ring">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="hdrRing" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+                <stop offset="0%" stop-color="#22c55e" />
+                <stop offset="33%" stop-color="#3b82f6" />
+                <stop offset="66%" stop-color="#ef4444" />
+                <stop offset="100%" stop-color="#22c55e" />
+                <animateTransform attributeName="gradientTransform" attributeType="XML" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="7s" repeatCount="indefinite" />
+              </linearGradient>
+            </defs>
+            <rect x="3" y="3" width="94" height="94" rx="6" fill="none" stroke="rgba(34,197,94,.28)" stroke-width="1.25" />
+            <rect x="3" y="3" width="94" height="94" rx="6" fill="none" stroke="url(#hdrRing)" stroke-width="1.25" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="bars" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+    <div class="meta-head">
+      <div>Name</div>
+      <div>Email</div>
+      <div>More</div>
+      <div>Approve</div>
+    </div>
+  </header>
+  <!-- Left sidebar menu -->
+  <div id="sideOverlay" class="side-overlay" onclick="if(event.target.id==='sideOverlay'){closeSideMenu()}">
+    <div class="side-panel">
+      <div class="side-head">
+        <img src="./cnc_auto_design.png" alt="Logo" style="width:30px;height:30px;border-radius:6px;box-shadow:0 0 0 2px rgba(255,255,255,.18)">
+        <b>Admin Panel</b>
+      </div>
+      <div class="side-list">
+        <a href="#" class="side-item" onclick="closeSideMenu(); goHome()">🏠 Home</a>
+        <a href="#" class="side-item" onclick="closeSideMenu(); openActiveList()">👥 Active Users <span id="badge-active" class="badge">0</span></a>
+        <a href="#" class="side-item" onclick="closeSideMenu(); openExpiredList()">⏰ Expired Users <span id="badge-expired" class="badge">0</span></a>
+        <a href="#" class="side-item" onclick="closeSideMenu(); openPaymentStats()">💳 Payments Summary</a>
+        <a href="#" class="side-item" onclick="closeSideMenu(); openInsights()">� Insights</a>
+        <a href="#" class="side-item" onclick="closeSideMenu(); openSettings()">⚙️ Settings</a>
+      </div>
+      <div class="side-foot">
+        <a href="#" class="side-item" onclick="closeSideMenu(); alert('Logout (demo)')">↩️ Logout</a>
+      </div>
+    </div>
+  </div>
+  <!-- Header menu overlay -->
+  <div id="topMenuOverlay" class="top-overlay" onclick="if(event.target.id==='topMenuOverlay'){closeHeaderMenu()}">
+    <div class="top-panel">
+      <div class="top-head">
+        <b>Quick Menu</b>
+        <button class="btn btn-outline sm" onclick="closeHeaderMenu()">Close</button>
+      </div>
+      <div class="top-body">
+        <div class="top-item"><span>Home</span><a class="link" href="index.html">Open</a></div>
+        <div class="top-item"><span>Active Users</span><button class="btn btn-approve sm" onclick="openActiveList()">View (<span id="active-count">0</span>)</button></div>
+        <div class="top-item"><span>Requests</span><a class="link" href="#">Pending</a></div>
+      </div>
+    </div>
+  </div>
+  <!-- Active users list modal -->
+  <div id="activeListOverlay" class="mini-overlay" onclick="if(event.target.id==='activeListOverlay'){closeActiveList()}">
+    <div class="mini-card">
+      <h3 style="margin:0 0 8px">Currently Active Users</h3>
+      <div id="active-list" class="m-list" style="max-height: fiftyvh; overflow:auto"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-deny sm" onclick="closeActiveList()">Close</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expired users list modal -->
+  <div id="expiredListOverlay" class="mini-overlay" onclick="if(event.target.id==='expiredListOverlay'){closeExpiredList()}">
+    <div class="mini-card">
+      <h3 style="margin:0 0 8px">Expired Users</h3>
+      <div id="expired-list" class="m-list" style="max-height: fiftyvh; overflow:auto"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:8px">
+        <button class="btn btn-danger sm" onclick="clearAllExpired()">Clear All</button>
+        <button class="btn btn-deny sm" onclick="closeExpiredList()">Close</button>
+      </div>
+    </div>
+  </div>
+  <main class="wrap">
+    <section class="card">
+      <div class="m-list" id="request-list"></div>
+    </section>
+    <!-- Modal -->
+    <div id="detailOverlay" class="overlay" onclick="if(event.target.id==='detailOverlay'){closeDetails()}">
+      <div class="dialog">
+        <h3>Request Details</h3>
+        <div class="grid">
+          <div>
+            <p class="label">Name</p>
+            <input id="d-name" class="field" />
+          </div>
+          <div>
+            <p class="label">Email</p>
+            <input id="d-email" class="field" />
+          </div>
+          <div>
+            <p class="label">Phone</p>
+            <input id="d-phone" class="field" />
+          </div>
+          <div>
+            <p class="label">TRX</p>
+            <input id="d-trx" class="field" />
+          </div>
+          <div>
+            <p class="label">Plan</p>
+            <input id="d-plan" class="field" />
+          </div>
+          <div>
+            <p class="label">Method</p>
+            <input id="d-method" class="field" />
+          </div>
+          <div>
+            <p class="label">Created</p>
+            <input id="d-created" class="field" type="date" />
+          </div>
+          <div>
+            <p class="label">Expiry</p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="d-expiry" class="field" type="date" style="flex:1" />
+              <button class="btn btn-outline sm" onclick="shiftExpiry(30)">+30d</button>
+              <button class="btn btn-outline sm" onclick="shiftExpiry(-30)">-30d</button>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-deny" onclick="closeDetails()">Close</button>
+          <button class="btn btn-outline" onclick="rejectAccount()">Reject</button>
+          <button class="btn btn-approve" onclick="saveUserDetails()">Save</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="online_admin.js"></script>
+  <script>
+    const ADMIN_EMAILS = ['your-admin@gmail.com','mdmarufcon84@gmail.com'];
+    (function(){
+      const norm = (s)=> (s||'').toString().normalize('NFKC').toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]/g,'');
+      const q = new URLSearchParams(window.location.search);
+      const qEmail = q.get('email');
+      if(qEmail) localStorage.setItem('userEmail', qEmail);
+      const email = localStorage.getItem('userEmail') || '';
+      const ok = ADMIN_EMAILS.map(norm).includes(norm(email));
+      if(!ok){
+        window.location.replace('../login/index.html');
+        return;
+      }
+    })();
+    (function(){
+      const input = document.getElementById('admin-search');
+      if(!input) return;
+      const list = document.querySelector('.m-list');
+      const items = () => Array.from(list ? list.querySelectorAll('.m-item') : []);
+      function norm(s){ return (s||'').toString().toLowerCase(); }
+      function haystack(el){ return norm(el.innerText || el.textContent || ''); }
+      function filter(){
+        const q = norm(input.value);
+        items().forEach(it=>{
+          const txt = haystack(it);
+          it.style.display = q ? (txt.includes(q) ? '' : 'none') : '';
+        });
+      }
+      input.addEventListener('input', filter);
+    })();
+    // Header overlay controls
+    function getRequests(){
+      try{ return JSON.parse(localStorage.getItem('requests')||'[]'); }catch(e){ return []; }
+    }
+    function setRequests(arr){ try{ localStorage.setItem('requests', JSON.stringify(arr||[])); }catch(e){} }
+    // Get expired accounts
+    function getExpired(){
+      try{ 
+        const activeUsers = JSON.parse(localStorage.getItem('activeUsers')||'[]');
+        const currentDate = new Date();
+        const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+        
+        const expiredUsers = activeUsers.filter(user => {
+          if(!user.expiry || user.expiry === '') return false;
+          const expiryDate = new Date(user.expiry);
+          const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+          return currentDateOnly > expiryDateOnly;
+        });
+        
+        return expiredUsers;
+      }catch(e){ return []; }
+    }
+    
+    // Clean expired accounts
+    function cleanExpiredAccounts(){
+      try{
+        const activeUsers = JSON.parse(localStorage.getItem('activeUsers')||'[]');
+        const currentDate = new Date();
+        const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+        
+        const validUsers = activeUsers.filter(user => {
+          if(!user.expiry || user.expiry === '') return true;
+          const expiryDate = new Date(user.expiry);
+          const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+          return currentDateOnly <= expiryDateOnly;
+        });
+        
+        const expiredUsers = activeUsers.filter(user => {
+          if(!user.expiry || user.expiry === '') return false;
+          const expiryDate = new Date(user.expiry);
+          const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+          return currentDateOnly > expiryDateOnly;
+        });
+        
+        // Move expired accounts to a separate storage
+        if(expiredUsers.length > 0){
+          const existingExpired = JSON.parse(localStorage.getItem('expiredUsers')||'[]');
+          const allExpired = [...existingExpired, ...expiredUsers];
+          localStorage.setItem('expiredUsers', JSON.stringify(allExpired));
+          
+          // Update active users
+          setActive(validUsers);
+          
+          // Show notification
+          alert(`Cleaned up ${expiredUsers.length} expired account(s). Accounts have been moved to expired list.`);
+          
+          // Refresh displays
+          renderActiveList();
+          updateBadges();
+        }
+      }catch(e){
+        console.error('Error cleaning expired accounts:', e);
+      }
+    }
+    
+    // Update badges to show expired count
+    function updateBadges(){
+      const activeCount = getActive().length;
+      const expiredCount = getExpired().length;
+      
+      document.getElementById('badge-active').textContent = activeCount;
+      
+      // Update expired badge if exists
+      const expiredBadge = document.getElementById('badge-expired');
+      if(expiredBadge){
+        expiredBadge.textContent = expiredCount;
+      }
+    }
+    
+    // Auto-cleanup on page load
+    document.addEventListener('DOMContentLoaded', function(){
+      // Clean expired accounts immediately
+      cleanExpiredAccounts();
+      
+      // Set up periodic cleanup (every 5 minutes)
+      setInterval(cleanExpiredAccounts, 5 * 60 * 1000);
+    });
+    
+    function getActive(){
+      try{ return JSON.parse(localStorage.getItem('activeUsers')||'[]'); }catch(e){ return []; }
+    }
+    function setActive(arr){ try{ localStorage.setItem('activeUsers', JSON.stringify(arr||[])); }catch(e){} }
+    function openHeaderMenu(){
+      document.getElementById('active-count').textContent = getActive().length;
+      document.getElementById('topMenuOverlay').style.display='grid';
+    }
+    function closeHeaderMenu(){
+      document.getElementById('topMenuOverlay').style.display='none';
+    }
+    function openActiveList(){
+      const wrap = document.getElementById('active-list');
+      const list = getActive();
+      wrap.innerHTML = '';
+      list.forEach((u,idx)=>{
+        const row = document.createElement('div');
+        row.className = 'm-item';
+        row.setAttribute('data-name', u.name);
+        row.setAttribute('data-email', u.email);
+        row.setAttribute('data-phone', u.phone||'');
+        row.setAttribute('data-trx', u.trx||'');
+        row.setAttribute('data-plan', u.plan||'');
+        row.setAttribute('data-method', u.method||'');
+        row.setAttribute('data-created', (u.created||'').slice ? (u.created||'').slice(0,10) : '');
+        row.setAttribute('data-expiry', (u.expiry||''));
+        row.style.gridTemplateColumns='1.2fr 1.6fr auto auto';
+        row.id = 'active-row-'+idx;
+        const gid = `ringGradActive${idx}`;
+        row.innerHTML = `
+          <div class="ring-wrap">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+                  <stop offset="0%" stop-color="#22c55e" />
+                  <stop offset="33%" stop-color="#3b82f6" />
+                  <stop offset="66%" stop-color="#ef4444" />
+                  <stop offset="100%" stop-color="#22c55e" />
+                  <animateTransform attributeName="gradientTransform" attributeType="XML" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="7s" repeatCount="indefinite" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="96" height="96" rx="0" fill="none" stroke="rgba(34,197,94,.28)" stroke-width="1" />
+              <rect x="2" y="2" width="96" height="96" rx="0" fill="none" stroke="url(#${gid})" stroke-width="1" stroke-linejoin="miter" />
+            </svg>
+          </div>
+          <div><div class="pill">${u.name}</div></div>
+          <div><div class="pill">${u.email}</div></div>
+          <div><span class="pill" style="color:#22c55e">Active</span></div>
+          <div>
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-outline sm" onclick="event.stopPropagation(); openActiveDetails(${idx})">Details</button>
+              <button class="btn btn-deny sm" onclick="event.stopPropagation(); rejectActive(${idx})">Reject</button>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(row);
+      });
+      document.getElementById('activeListOverlay').style.display='grid';
+    }
+    function closeActiveList(){
+      document.getElementById('activeListOverlay').style.display='none';
+    }
+    function openActiveDetails(i){
+      const el = document.getElementById('active-row-'+i);
+      if(el) openDetails(el);
+    }
+    function rejectActive(i){
+      const list = getActive();
+      const u = list[i];
+      if(!u) return;
+      if(confirm('Reject/Deactivate ' + u.name + '?')){
+        list.splice(i,1);
+        setActive(list);
+        document.getElementById('badge-active').textContent = list.length;
+        const cnt = document.getElementById('active-count');
+        if(cnt) cnt.textContent = list.length;
+        openActiveList();
+      }
+    }
+    // Sidebar links
+    function goHome(){ window.open('../login/index.html','_blank'); }
+    
+    // User ranking system with manual ranking
+    function updateUserRankings(){
+      const activeList = getActive();
+      const now = new Date();
+      
+      // Calculate rankings for each user
+      const rankedUsers = activeList.map(user => {
+        const createdDate = new Date(user.created || now);
+        const daysSinceCreation = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        
+        // Use manual rank if set, otherwise use automatic ranking
+        let rank = user.manualRank || '🥉 New User';
+        let rankColor = user.manualRankColor || '#22c55e';
+        
+        // Automatic ranking if no manual rank
+        if(!user.manualRank){
+          if(daysSinceCreation >= 7){
+            rank = '⭐ 7-Day User';
+            rankColor = '#3b82f6';
+          }
+          if(daysSinceCreation >= 14){
+            rank = '🥈 14-Day User';
+            rankColor = '#c0c0c0';
+          }
+          if(daysSinceCreation >= 30){
+            rank = '🥇 30-Day User';
+            rankColor = '#ffd700';
+          }
+          if(daysSinceCreation >= 90){
+            rank = '💎 90-Day User';
+            rankColor = '#b9f2ff';
+          }
+          if(daysSinceCreation >= 180){
+            rank = '👑 180-Day User';
+            rankColor = '#e5e4e2';
+          }
+        }
+        
+        return {
+          ...user,
+          daysSinceCreation,
+          rank,
+          rankColor
+        };
+      });
+      
+      // Sort by manual rank first, then by days (highest first)
+      rankedUsers.sort((a, b) => {
+        // Manual ranks get priority
+        if(a.manualRank && !b.manualRank) return -1;
+        if(!a.manualRank && b.manualRank) return 1;
+        if(a.manualRank && b.manualRank) return 0;
+        // If no manual ranks, sort by days
+        return b.daysSinceCreation - a.daysSinceCreation;
+      });
+      
+      // Update active list display with rankings
+      const wrap = document.getElementById('active-list');
+      if(wrap && wrap.children.length > 0){
+        const items = wrap.querySelectorAll('.m-item');
+        items.forEach((item, index) => {
+          const email = item.getAttribute('data-email');
+          const rankedUser = rankedUsers.find(u => u.email === email);
+          
+          if(rankedUser){
+            // Update or add rank display
+            let rankDisplay = item.querySelector('.rank-display');
+            if(!rankDisplay){
+              rankDisplay = document.createElement('div');
+              rankDisplay.className = 'rank-display';
+              rankDisplay.style.cssText = `
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: ${rankedUser.rankColor}20;
+                color: ${rankedUser.rankColor};
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 10px;
+                font-weight: 700;
+                border: 1px solid ${rankedUser.rankColor}40;
+                z-index: 10;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                white-space: nowrap;
+                cursor: pointer;
+                transition: all 0.2s ease;
+              `;
+              
+              // Add click event to edit rank
+              rankDisplay.addEventListener('click', function(e){
+                e.stopPropagation();
+                const userEmail = item.getAttribute('data-email');
+                openRankEditor(userEmail, rankedUser);
+              });
+              
+              // Add hover effect
+              rankDisplay.addEventListener('mouseenter', function(){
+                this.style.transform = 'scale(1.05)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+              });
+              
+              rankDisplay.addEventListener('mouseleave', function(){
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              });
+              
+              item.appendChild(rankDisplay);
+            }
+            
+            rankDisplay.textContent = rankedUser.rank;
+            rankDisplay.style.background = `${rankedUser.rankColor}20`;
+            rankDisplay.style.color = rankedUser.rankColor;
+            rankDisplay.style.borderColor = `${rankedUser.rankColor}40`;
+          }
+        });
+      }
+    }
+    
+    // Open rank editor modal
+    function openRankEditor(userEmail, currentUser){
+      const modal = document.createElement('div');
+      modal.id = 'rankEditorModal';
+      modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+      `;
+      
+      modal.innerHTML = `
+        <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+          <h3 style="margin: 0 0 15px 0; color: #e5e7eb;">Edit User Rank</h3>
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; color: #9aa6b2; font-size: 12px;">User Email:</label>
+            <input type="email" value="${userEmail}" readonly style="width: 100%; height: 40px; border-radius: 8px; border: 1px solid #233144; background: #0b1220; color: #eef2ff; padding: 8px 12px; font-size: 14px;" />
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; color: #9aa6b2; font-size: 12px;">Custom Rank:</label>
+            <input type="text" id="customRankInput" placeholder="e.g., ⭐ VIP User" value="${currentUser.manualRank || ''}" style="width: 100%; height: 40px; border-radius: 8px; border: 1px solid #233144; background: #0b1220; color: #eef2ff; padding: 8px 12px; font-size: 14px;" />
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; color: #9aa6b2; font-size: 12px;">Rank Color:</label>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+              <button class="color-btn" data-color="#22c55e" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #22c55e; cursor: pointer; transition: all 0.2s;">Green</button>
+              <button class="color-btn" data-color="#3b82f6" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #3b82f6; cursor: pointer; transition: all 0.2s;">Blue</button>
+              <button class="color-btn" data-color="#ffd700" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #ffd700; cursor: pointer; transition: all 0.2s;">Gold</button>
+              <button class="color-btn" data-color="#b9f2ff" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #b9f2ff; cursor: pointer; transition: all 0.2s;">Purple</button>
+              <button class="color-btn" data-color="#ef4444" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #ef4444; cursor: pointer; transition: all 0.2s;">Red</button>
+              <button class="color-btn" data-color="#e5e4e2" style="height: 35px; border-radius: 6px; border: 2px solid transparent; background: #e5e4e2; cursor: pointer; transition: all 0.2s;">Silver</button>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button onclick="closeRankEditor()" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #233144; background: transparent; color: #cbd5e1; cursor: pointer; font-weight: 600;">Cancel</button>
+            <button onclick="saveUserRank('${userEmail}')" style="height: 36px; padding: 0 16px; border-radius: 8px; border: none; background: linear-gradient(180deg, #22c55e, #059669); color: white; cursor: pointer; font-weight: 600;">Save Rank</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Set selected color
+      if(currentUser.manualRankColor){
+        const colorBtn = modal.querySelector(`[data-color="${currentUser.manualRankColor}"]`);
+        if(colorBtn){
+          colorBtn.style.borderColor = currentUser.manualRankColor;
+        }
+      }
+      
+      // Add color selection logic
+      modal.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+          modal.querySelectorAll('.color-btn').forEach(b => b.style.borderColor = 'transparent');
+          this.style.borderColor = this.dataset.color;
+        });
+      });
+    }
+    
+    // Close rank editor
+    function closeRankEditor(){
+      const modal = document.getElementById('rankEditorModal');
+      if(modal) modal.remove();
+    }
+    
+    // Save user rank
+    function saveUserRank(userEmail){
+      const customRank = document.getElementById('customRankInput').value.trim();
+      const selectedColorBtn = document.querySelector('.color-btn[style*="border-color"]');
+      const selectedColor = selectedColorBtn ? selectedColorBtn.dataset.color : '#22c55e';
+      
+      if(!customRank){
+        alert('Please enter a custom rank!');
+        return;
+      }
+      
+      // Update user in active list
+      const activeList = getActive();
+      const userIndex = activeList.findIndex(u => u.email === userEmail);
+      
+      if(userIndex >= 0){
+        activeList[userIndex].manualRank = customRank;
+        activeList[userIndex].manualRankColor = selectedColor;
+        setActive(activeList);
+        
+        closeRankEditor();
+        updateUserRankings();
+        
+        alert('User rank updated successfully!');
+      } else {
+        alert('User not found!');
+      }
+    }
+    
+    // Update rankings when active list is opened
+    const originalOpenActiveList = openActiveList;
+    openActiveList = function(){
+      originalOpenActiveList();
+      setTimeout(updateUserRankings, 100);
+    };
+    // Payments summary
+    function openPaymentStats(){
+      const wrap = document.getElementById('pay-stats');
+      const list = getActive();
+      
+      // Calculate total amount
+      const total = list.reduce((s,u)=> s + (u.amount||0), 0);
+      
+      // Calculate total accounts
+      const totalAccounts = list.length;
+      
+      wrap.innerHTML = '';
+      
+      // Add total summary header
+      const summaryHead = document.createElement('div');
+      summaryHead.className='top-item';
+      summaryHead.style.background = 'linear-gradient(135deg, #1e293b, #334155)';
+      summaryHead.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="text-align: center;">
+            <div style="font-size: 11px; color: #9aa6b2; margin-bottom: 4px;">Total Accounts</div>
+            <div style="font-size: 18px; font-weight: 700; color: #60a5fa;">${totalAccounts}</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 11px; color: #9aa6b2; margin-bottom: 4px;">Total Collected</div>
+            <div style="font-size: 18px; font-weight: 700; color: #22c55e;">${total} ৳</div>
+          </div>
+        </div>
+      `;
+      wrap.appendChild(summaryHead);
+      
+      // Add individual payment details
+      list.forEach((u, index)=>{
+        const row = document.createElement('div');
+        row.className='top-item';
+        
+        // Get plan info
+        const planText = (u.plan||'basic').toLowerCase();
+        const planDisplay = planText === 'premium' || planText === '12m' ? 'Premium' : 'Basic';
+        const planColor = planText === 'premium' || planText === '12m' ? '#8b5cf6' : '#3b82f6';
+        
+        // Get payment method info
+        const methodText = (u.method||'').toLowerCase();
+        let methodDisplay = 'Unknown';
+        let methodColor = '#6b7280';
+        
+        if(methodText.includes('bkash')){ methodDisplay = 'bKash'; methodColor = '#e91e63'; }
+        else if(methodText.includes('nagad')){ methodDisplay = 'Nagad'; methodColor = '#f59e0b'; }
+        else if(methodText.includes('master')){ methodDisplay = 'Master Card'; methodColor = '#ef4444'; }
+        else if(methodText.includes('debit')){ methodDisplay = 'Debit Card'; methodColor = '#06b6d4'; }
+        
+        // Format date
+        const createdDate = u.created ? new Date(u.created).toLocaleDateString('bn-BD') : 'N/A';
+        
+        row.innerHTML = `
+          <div style="display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr; gap: 8px; align-items: center;">
+            <div>
+              <div style="font-weight: 600; color: #e5e7eb;">${u.name || 'Unknown'}</div>
+              <div style="font-size: 11px; color: #9aa6b2;">${u.email || 'N/A'}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 700; color: #22c55e; font-size: 16px;">${u.amount||0} ৳</div>
+              <div style="font-size: 10px; color: #9aa6b2;">${createdDate}</div>
+            </div>
+            <div style="text-align: center;">
+              <span style="background: ${planColor}20; color: ${planColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">${planDisplay}</span>
+            </div>
+            <div style="text-align: center;">
+              <span style="background: ${methodColor}20; color: ${methodColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">${methodDisplay}</span>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(row);
+      });
+      
+      document.getElementById('payStatsOverlay').style.display='grid';
+    }
+    function closePaymentStats(){ document.getElementById('payStatsOverlay').style.display='none'; }
+    // Insights
+    function openInsights(){ buildInsights(); document.getElementById('insightsOverlay').style.display='grid'; }
+    function buildInsights(){
+      const days = parseInt(document.getElementById('insights-range').value||'14',10);
+      const now = new Date();
+      const series = [];
+      for(let i=days-1;i>=0;i--){
+        const d = new Date(now); d.setDate(now.getDate()-i);
+        const val = Math.max(1, Math.round(8 + Math.sin(i/3)*3 + (Math.random()*2-1)));
+        series.push({d, v: val});
+      }
+      // KPIs
+      const today = series[series.length-1].v;
+      const monthSum = series.filter(s=> s.d.getMonth()===now.getMonth()).reduce((a,b)=>a+b.v,0);
+      const avg7 = series.slice(-7).reduce((a,b)=>a+b.v,0)/Math.min(7, series.length);
+      const proj30 = Math.round(avg7*30);
+      document.getElementById('kpi-today').textContent = today;
+      document.getElementById('kpi-month').textContent = monthSum;
+      document.getElementById('kpi-proj').textContent = proj30;
+      // Chart scaling
+      const maxV = Math.max(...series.map(s=>s.v))*1.2;
+      const points = series.map((s,idx)=>{
+        const x = (idx/(series.length-1))*100;
+        const y = 38 - (s.v/maxV)*36;
+        return `${x},${y}`;
+      });
+      const actual = document.getElementById('insights-actual');
+      const proj = document.getElementById('insights-proj');
+      const area = document.getElementById('insights-area');
+      actual.setAttribute('points', points.join(' '));
+      proj.setAttribute('points', `${points[points.length-1]} 100,${points[points.length-1].split(',')[1]}`);
+      area.setAttribute('points', `0,40 ${points.join(' ')} 100,40`);
+      // X labels
+      const xl = document.getElementById('insights-x');
+      xl.innerHTML = '';
+      const step = Math.max(1, Math.floor(series.length/4));
+      for(let i=0;i<series.length;i+=step){
+        const s = series[i];
+        const label = `${('0'+(s.d.getMonth()+1)).slice(-2)}/${('0'+s.d.getDate()).slice(-2)}`;
+        const span = document.createElement('span');
+        span.textContent = label; xl.appendChild(span);
+      }
+      document.getElementById('insights-summary').textContent = `Start: ${series[0].d.toLocaleDateString()} • Today: ${today} • 30-day projection: ${proj30}`;
+    }
+    function closeInsights(){ document.getElementById('insightsOverlay').style.display='none'; }
+    // Settings
+    function openSettings(){ 
+      document.getElementById('settingsOverlay').style.display='grid';
+      
+      // Load saved settings
+      try{
+        const settings = JSON.parse(localStorage.getItem('adminSettings')||'{}');
+        if(settings.price6) document.getElementById('set-price-6').value = settings.price6;
+        if(settings.price12) document.getElementById('set-price-12').value = settings.price12;
+        if(settings.bkash) document.getElementById('set-bkash').value = settings.bkash;
+        if(settings.nagad) document.getElementById('set-nagad').value = settings.nagad;
+        if(settings.debitCard) document.getElementById('set-debit-card').value = settings.debitCard;
+        if(settings.masterCard) document.getElementById('set-master-card').value = settings.masterCard;
+      }catch(e){
+        console.error('Failed to load settings:', e);
+      }
+    }
+    function closeSettings(){ document.getElementById('settingsOverlay').style.display='none'; }
+    function saveSettings(){
+      const p6 = document.getElementById('set-price-6').value;
+      const p12 = document.getElementById('set-price-12').value;
+      const bkash = document.getElementById('set-bkash').value;
+      const nagad = document.getElementById('set-nagad').value;
+      const debitCard = document.getElementById('set-debit-card').value;
+      const masterCard = document.getElementById('set-master-card').value;
+      
+      // Save to localStorage
+      const settings = {
+        price6: p6,
+        price12: p12,
+        bkash: bkash,
+        nagad: nagad,
+        debitCard: debitCard,
+        masterCard: masterCard
+      };
+      
+      try{
+        localStorage.setItem('adminSettings', JSON.stringify(settings));
+        console.log('Settings saved:', settings);
+        closeSettings();
+        alert('Settings saved successfully!');
+      }catch(e){
+        console.error('Failed to save settings:', e);
+        alert('Failed to save settings!');
+      }
+    }
+    // Requests rendering
+    function renderRequests(){
+      const wrap = document.getElementById('request-list');
+      const reqs = getRequests();
+      wrap.innerHTML = '';
+      if(!reqs.length){
+        const empty = document.createElement('div');
+        empty.className = 'muted';
+        empty.style.padding = '10px';
+        empty.textContent = 'No requests yet.';
+        wrap.appendChild(empty);
+        return;
+      }
+      reqs.forEach((r,idx)=>{
+        const gid = `ringGradReq${idx}`;
+        const row = document.createElement('div');
+        row.className = 'm-item';
+        row.setAttribute('data-name', r.name||'');
+        row.setAttribute('data-email', r.email||'');
+        row.setAttribute('data-phone', r.phone||'');
+        row.setAttribute('data-trx', r.trx||'');
+        row.setAttribute('data-plan', r.plan||'');
+        row.setAttribute('data-method', r.method||'');
+        row.setAttribute('data-created', (r.created||'').slice(0,10));
+        row.style.gridTemplateColumns='1.2fr 1.6fr auto auto';
+        row.innerHTML = `
+          <div class="ring-wrap">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+                  <stop offset="0%" stop-color="#22c55e" />
+                  <stop offset="33%" stop-color="#3b82f6" />
+                  <stop offset="66%" stop-color="#ef4444" />
+                  <stop offset="100%" stop-color="#22c55e" />
+                  <animateTransform attributeName="gradientTransform" attributeType="XML" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="7s" repeatCount="indefinite" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="96" height="96" rx="0" fill="none" stroke="rgba(34,197,94,.28)" stroke-width="1" />
+              <rect x="2" y="2" width="96" height="96" rx="0" fill="none" stroke="url(#${gid})" stroke-width="1" stroke-linejoin="miter" />
+            </svg>
+          </div>
+          <div><div class="pill">${r.name||'Unknown'}</div></div>
+          <div><div class="pill">${r.email||''}</div></div>
+          <div><button class="btn-dot" onclick="event.stopPropagation(); openDetails(this.closest('.m-item'))">⋯</button></div>
+          <div>
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-approve sm" onclick="approveReq(${idx})">Approve</button>
+              <button class="btn btn-deny sm" onclick="rejectReq(${idx})">Reject</button>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(row);
+      });
+    }
+    function approveReq(i){
+      const reqs = getRequests();
+      const r = reqs[i]; if(!r) return;
+      reqs.splice(i,1); setRequests(reqs);
+      const list = getActive();
+      
+      // Get plan details for amount calculation
+      const planText = (r.plan||'basic').toLowerCase();
+      const settings = JSON.parse(localStorage.getItem('adminSettings')||'{}');
+      const amount = (planText==='premium' ? (settings.price12||10000) : (settings.price6||5000)); // Use updated prices
+      
+      // Calculate expiry date based on user's selected plan
+      const createdDate = new Date();
+      const expiryDate = new Date(createdDate);
+      let daysToAdd = 180; // Default to 6 months (basic)
+
+      if(planText === 'premium' || planText === '12m'){
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1); // 1 year for premium
+        daysToAdd = 365;
+      } else {
+        expiryDate.setMonth(expiryDate.getMonth() + 6); // 6 months for basic
+      }
+      
+      // Format dates
+      const created = createdDate.toISOString();
+      const expiry = expiryDate.toISOString().slice(0,10);
+      
+      // carry over all relevant fields for details view
+      const approved = {
+        name: r.name||'',
+        email: r.email||'',
+        phone: r.phone||'',
+        trx: r.trx||'',
+        plan: r.plan||'',
+        method: r.method||'',
+        created: created || new Date().toISOString(),
+        expiry: expiry, // Set to 6 months from today
+        amount: amount
+      };
+      list.push(approved);
+      setActive(list);
+      document.getElementById('badge-active').textContent = list.length;
+      renderRequests();
+      
+      // Show notification about expiry
+      alert(`Account approved! Expiry set to ${expiry} (${daysToAdd/30} months from today). You can modify this in account details.`);
+      
+      // Notify local desktop app (if running) to auto-login
+      try{
+        const plan = (approved.plan||'').toLowerCase();
+        fetch('http://127.0.0.1:51234/approve',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            email: approved.email,
+            plan: (plan==='premium') ? '12m' : (plan==='basic'?'6m':approved.plan||'6m'),
+            days: daysToAdd // Set days based on user's selected plan
+          })
+        }).catch(()=>{});// console.warn('desktop notify failed', e); }
+      }catch(e){ console.warn('desktop notify failed', e); }
+      alert('Approved and added to payment statistics!');
+    }
+    function rejectReq(i){
+      const reqs = getRequests();
+      if(!reqs[i]) return;
+      if(confirm('Reject this request?')){ reqs.splice(i,1); setRequests(reqs); renderRequests(); }
+    }
+    // Update badges
+    document.getElementById('badge-active').textContent = getActive().length;
+    renderRequests();
+    // Sidebar controls
+    function openSideMenu(){
+      const ov = document.getElementById('sideOverlay');
+      ov.style.display = 'block';
+      // force reflow then show class for transition
+      void ov.offsetWidth; ov.classList.add('show');
+    }
+    function closeSideMenu(){
+      const ov = document.getElementById('sideOverlay');
+      ov.classList.remove('show');
+      setTimeout(()=>{ ov.style.display='none'; }, 250);
+    }
+    // Modal detail open/close and populate
+    let currentEditingUser = null; // Track current user being edited
+    
+    function openDetails(card){
+      const g = (k)=> card.getAttribute('data-'+k) || '';
+      const email = g('email');
+      
+      // Find the user in active list
+      const activeList = getActive();
+      currentEditingUser = activeList.find(user => user.email === email);
+      
+      if(currentEditingUser){
+        // Populate form with user data
+        document.getElementById('d-name').value = currentEditingUser.name || '';
+        document.getElementById('d-email').value = currentEditingUser.email || '';
+        document.getElementById('d-phone').value = currentEditingUser.phone || '';
+        document.getElementById('d-trx').value = currentEditingUser.trx || '';
+        document.getElementById('d-plan').value = currentEditingUser.plan || '';
+        document.getElementById('d-method').value = currentEditingUser.method || '';
+        document.getElementById('d-created').value = (currentEditingUser.created || '').slice(0,10);
+        document.getElementById('d-expiry').value = currentEditingUser.expiry || '';
+      } else {
+        // Fallback to card attributes
+        document.getElementById('d-name').value = g('name');
+        document.getElementById('d-email').value = g('email');
+        document.getElementById('d-phone').value = g('phone');
+        document.getElementById('d-trx').value = g('trx');
+        document.getElementById('d-plan').value = g('plan');
+        document.getElementById('d-method').value = g('method');
+        document.getElementById('d-created').value = g('created');
+        document.getElementById('d-expiry').value = g('expiry');
+      }
+      
+      document.getElementById('detailOverlay').style.display = 'grid';
+    }
+    function closeDetails(){
+      document.getElementById('detailOverlay').style.display = 'none';
+    }
+    function shiftExpiry(days){
+      const el = document.getElementById('d-expiry');
+      if(!el) return;
+      
+      let d;
+      if(el.value && el.value !== ''){
+        // Use existing date
+        d = new Date(el.value);
+      } else {
+        // Use today's date as starting point
+        d = new Date();
+      }
+      
+      // Add/subtract days
+      d.setDate(d.getDate() + days);
+      
+      // Format as YYYY-MM-DD for date input
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      
+      el.value = formattedDate;
+    }
+    function rejectAccount(){
+      if(confirm('Reject this account?')){
+        // Get current user details
+        const name = document.getElementById('d-name').value;
+        const email = document.getElementById('d-email').value;
+        
+        // Remove from active users
+        const activeList = getActive();
+        const updatedList = activeList.filter(user => user.email !== email);
+        setActive(updatedList);
+        
+        // Update badge count
+        document.getElementById('badge-active').textContent = updatedList.length;
+        
+        // Refresh the active list if open
+        if(document.getElementById('activeListOverlay').style.display === 'grid'){
+          openActiveList();
+        }
+        
+        alert('Account rejected and removed successfully!');
+        closeDetails();
+      }
+    }
+    
+    function saveUserDetails(){
+      try{
+        // Get all form values
+        const name = document.getElementById('d-name').value;
+        const email = document.getElementById('d-email').value;
+        const phone = document.getElementById('d-phone').value;
+        const trx = document.getElementById('d-trx').value;
+        const plan = document.getElementById('d-plan').value;
+        const method = document.getElementById('d-method').value;
+        const created = document.getElementById('d-created').value;
+        const expiry = document.getElementById('d-expiry').value;
+        
+        // Validate required fields
+        if(!name || !email){
+          alert('Name and Email are required!');
+          return;
+        }
+        
+        // Get current active users
+        const activeList = getActive();
+        const userIndex = activeList.findIndex(user => user.email === email);
+        
+        if(userIndex >= 0){
+          // Update existing user
+          activeList[userIndex] = {
+            ...activeList[userIndex],
+            name,
+            phone,
+            trx,
+            plan,
+            method,
+            created,
+            expiry,
+            amount: activeList[userIndex].amount || 0
+          };
+          
+          // Save updated list
+          setActive(activeList);
+          
+          // Update current editing user
+          currentEditingUser = activeList[userIndex];
+          
+          // Refresh the active list if open
+          if(document.getElementById('activeListOverlay').style.display === 'grid'){
+            openActiveList();
+          }
+          
+          alert('User details saved successfully!');
+          closeDetails();
+        } else {
+          alert('User not found in active list!');
+        }
+      }catch(e){
+        console.error('Error saving user details:', e);
+        alert('Failed to save user details!');
+      }
+    }
+  </script>
+</body>
+</html>

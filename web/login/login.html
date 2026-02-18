@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CNC AUTO DESIGN — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --bg: #0b0f1a;
+      --card: #0a0a0a;
+      --border: #1a1a1a;
+      --text: #e5e7eb;
+      --muted: #aeb5c3;
+      --green: #10b981;
+      --red1: #ef4444;
+      --red2: #b91c1c;
+    }
+    body{margin:0;height:100vh;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1200px 600px at 20% 10%,#0a1830 0%,#081223 40%,#060a12 100%), var(--bg);color:var(--text);}
+    .overlay{position:fixed;inset:0;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);z-index:10}
+    .dialog{position:relative;width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 28px 90px rgba(0,0,0,.65);padding:28px 22px;}
+    /* Animated ring sits UNDER the card edges, showing around the sides like the old green shade */
+    .ring-wrap{position:absolute;left:-1px;top:-1px;width:calc(100% + 2px);height:calc(100% + 2px);pointer-events:none;overflow:visible}
+    .border-ring{width:100%;height:100%;filter:drop-shadow(0 0 1px rgba(34,197,94,.18))}
+    .stack{display:grid;gap:14px}
+    .title{margin:0 0 4px 0;font-size:26px;font-weight:700;color:#ffffff;text-align:center}
+    .subtitle{margin:0 0 16px 0;font-size:13px;color:var(--muted);text-align:center}
+    .input{width:100%;height:44px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#0b0b0b;padding:10px 12px;font-size:14px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .mutelink{color:#9aa6b2;text-decoration:none;font-size:12px}
+    .mutelink:hover{text-decoration:underline}
+    .btn{appearance:none;border:0;border-radius:10px;height:46px;padding:0 16px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:none}
+    .btn-primary{background:linear-gradient(180deg,#5b6bff,#3b47d9);color:#fff;box-shadow:0 8px 18px rgba(59,71,217,.35)}
+    .btn-secondary{background:linear-gradient(180deg,#60a5fa,#2563eb);color:#fff}
+    .btn-danger{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#fff}
+    .btn-white{background:linear-gradient(#ffffff,#f4f6f8);color:#0b0b0b;border:1px solid #d1d5db}
+    .divider{height:1px;background:rgba(255,255,255,.35);margin:12px 0 10px}
+    .hidden{display:none}
+    /* password input with eye */
+    .input-wrap{position:relative}
+    .input-wrap .toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:6px;cursor:pointer;color:#64748b}
+    .input-wrap .toggle:hover{color:#334155}
+    /* bottom big buttons */
+    .actions-row{display:flex;gap:8px}
+    .btn-wide{flex:1;width:100%;height:50px;border-radius:12px}
+    /* payment buttons */
+    .pay-header{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px}
+    .plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .plan{background:#0f0f12;border:1px solid #242424;border-radius:12px;padding:10px 12px;color:#e5e7eb;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:pointer}
+    .plan.selected{border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.25) inset}
+    .plan h4{margin:0 0 6px 0;font-size:13px;color:#cbd5e1}
+    .price{font-size:20px;font-weight:800;color:#60a5fa;margin:0}
+    .muted-small{font-size:11px;color:#9aa6b2}
+    .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 12px}
+    .method{display:flex;align-items:center;gap:10px;background:#0f0f12;border:1px solid #242424;border-radius:12px;padding:10px 12px;color:#e5e7eb;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:pointer}
+    .method.selected{border-color:#8b5cf6;box-shadow:0 0 0 2px rgba(139,92,246,.25) inset}
+    .method .icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:#ffffff;box-shadow:0 0 0 1px rgba(0,0,0,.15) inset}
+    .pay-cta{width:100%;height:48px;border:0;border-radius:10px;background:linear-gradient(180deg,#8b5cf6,#5b21b6);color:#fff;font-weight:900;letter-spacing:.4px}
+    .pay-cta:disabled{opacity:.55;filter:grayscale(.2);cursor:not-allowed}
+    /* pay details */
+    .details-card{background:#0f0f12;border:1px solid #242424;border-radius:14px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+    .copy-row{display:flex;align-items:center;gap:10px}
+    .copy-btn{height:36px;padding:0 12px;border:0;border-radius:8px;background:linear-gradient(180deg,#8b5cf6,#5b21b6);color:#fff;font-weight:800;cursor:pointer}
+    .field{height:42px;border-radius:8px;border:1px solid #2a2a2a;background:#0a0a0a;color:#ffffff;padding:10px 12px}
+    .note{font-size:12px;color:#9aa6b2}
+    /* waiting + success views */
+    .center{display:grid;place-items:center;text-align:center}
+    .spinner{width:32px;height:32px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#60a5fa;animation:spin 1s linear infinite;margin:10px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .success-wrap{background:linear-gradient(180deg,#22c55e,#059669);border-radius:16px;padding:14px;color:#ecfdf5}
+    .success-card{background:#0b0f1a;border:1px solid #1f2937;border-radius:12px;padding:12px;color:#e5e7eb}
+    .success-list{display:grid;gap:10px}
+    .preview-iframe{position:absolute;inset:0;border:0;width:100%;height:100%;filter:blur(4px) saturate(1.05);transform:scale(1.01);opacity:.95;pointer-events:none}
+  </style>
+  <script>
+    // Auto reset localStorage if URL contains ?reset=1
+    (function(){
+      try{
+        const q = new URLSearchParams(location.search);
+        if(q.get('reset') === '1'){
+          localStorage.removeItem('accounts');
+          localStorage.removeItem('requests');
+        }
+      }catch(e){}
+    })();
+    function go(url){ window.location.href=url }
+    function showLogin(){
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+    function showMenu(){
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.add('hidden');
+      const gf = document.getElementById('guestForm'); if(gf) gf.classList.add('hidden');
+      document.getElementById('menu').classList.remove('hidden');
+    }
+    function togglePw(){
+      const pw = document.getElementById('password');
+      const eyeOpen = document.getElementById('eye-open');
+      const eyeOff = document.getElementById('eye-off');
+      const isHidden = pw.type === 'password';
+      pw.type = isHidden ? 'text' : 'password';
+      eyeOpen.style.display = isHidden ? 'none' : 'inline';
+      eyeOff.style.display = isHidden ? 'inline' : 'none';
+    }
+    function showSignup(){
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById('signupForm').classList.remove('hidden');
+    }
+    function showGuest(){
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById('guestForm').classList.remove('hidden');
+    }
+    
+    function submitGuestAccount(){
+      const name = (document.getElementById('guest-name')||{}).value||'';
+      const emailRaw = (document.getElementById('guest-email')||{}).value||'';
+      const email = emailRaw.toString().normalize('NFKC').toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]/g,'');
+      const phone = (document.getElementById('guest-phone')||{}).value||'';
+      const purpose = (document.getElementById('guest-purpose')||{}).value||'';
+      
+      // Validate required fields
+      if(!name || !email){
+        showError('Please enter your name and email address');
+        return;
+      }
+      
+      // Generate guest account data
+      const guestData = {
+        name: name,
+        email: email,
+        phone: phone,
+        purpose: purpose,
+        type: 'guest_request',
+        plan: 'guest',
+        created: new Date().toISOString(),
+        status: 'pending'
+      };
+      
+      try{
+        // Add to requests for admin approval
+        const requests = JSON.parse(localStorage.getItem('requests')||'[]');
+        requests.push(guestData);
+        localStorage.setItem('requests', JSON.stringify(requests));
+        
+        // Show success and redirect
+        showGuestSuccess();
+        
+      }catch(e){
+        console.error('Error submitting guest request:', e);
+        showError('Failed to submit request. Please try again.');
+      }
+    }
+    
+    function showGuestSuccess(){
+      const overlay = document.querySelector('.overlay');
+      const dialog = document.querySelector('.dialog');
+      
+      // Create success view
+      const successView = document.createElement('div');
+      successView.className = 'success-wrap';
+      successView.style.cssText = `
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, #22c55e, #059669);
+        border-radius: 16px;
+        padding: 28px 22px;
+        color: #ecfdf5;
+        display: grid;
+        place-items: center;
+        z-index: 100;
+      `;
+      
+      successView.innerHTML = `
+        <div style="text-align: center;">
+          <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 700;">Guest Account Request Submitted!</h3>
+          <p style="margin: 0 0 20px 0; font-size: 14px; opacity: 0.9;">আপনার অনুরোধ গ্রহণ করা হয়েছে</p>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: left;">
+            <p style="margin: 0 0 8px 0; font-size: 13px;"><strong>What happens next?</strong></p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
+              <li>Admin will review your request</li>
+              <li>You'll receive email notification upon approval</li>
+              <li>Once approved, you can login with your credentials</li>
+            </ul>
+          </div>
+          <button onclick="window.location.href='index.html'" style="background: white; color: #059669; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+            Return to Main Page
+          </button>
+        </div>
+      `;
+      
+      dialog.appendChild(successView);
+      
+      // Animate in
+      successView.style.opacity = '0';
+      successView.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        successView.style.transition = 'all 0.3s ease';
+        successView.style.opacity = '1';
+        successView.style.transform = 'scale(1)';
+      }, 100);
+    }
+    function showPayment(){
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('paymentForm').classList.remove('hidden');
+    }
+    // Persist a basic local account so the desktop app can recognize login later
+    function saveAccount(){
+      try{
+        const emailRaw = (document.getElementById('su-email')||{}).value||'';
+        const email = emailRaw.toString().normalize('NFKC').toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]/g,'');
+        const pw = (document.getElementById('pw1')||{}).value||'';
+        if(!email || !pw){ alert('Please enter Email and Password'); return; }
+        const accs = JSON.parse(localStorage.getItem('accounts')||'[]');
+        const idx = accs.findIndex(a=>a.email===email);
+        if(idx>=0){
+          if(confirm('Account already exists. Update password for this email?')){
+            accs[idx].pw = pw;
+            localStorage.setItem('accounts', JSON.stringify(accs));
+            // proceed to payment after update as well
+          } else {
+            // proceed to payment anyway for plan purchase
+          }
+        } else {
+          accs.push({email, pw});
+          localStorage.setItem('accounts', JSON.stringify(accs));
+        }
+        // store a pending signup snapshot for admin queue if user directly goes to payment
+        try{
+          const fn = (document.getElementById('su-first')||{}).value||'';
+          const ln = (document.getElementById('su-last')||{}).value||'';
+          const name = (fn+' '+ln).trim() || (document.getElementById('su-user')||{}).value || 'Unknown';
+          const phone = (document.getElementById('su-phone')||{}).value||'';
+          const pending = {name, email, phone, created:new Date().toISOString()};
+          localStorage.setItem('pending_signup', JSON.stringify(pending));
+        }catch(e){}
+        // go to payment form instead of returning to menu
+        showPayment();
+      }catch(e){ alert('Could not save account: '+e); }
+    }
+    async function doLogin(){
+      const emailRaw = document.querySelector('#loginForm input[type="email"]').value||'';
+      const email = emailRaw.toString().normalize('NFKC').toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]/g,'');
+      const pw = document.getElementById('password').value||'';
+      
+      // Validate inputs
+      if(!email || !pw){
+        showError('Please enter both email and password');
+        return;
+      }
+      
+      // Check against admin-approved users from Firebase/LocalStorage
+        try{
+            // Try Firebase first
+            const firebaseResponse = await fetch('https://cnc-auto-admin.onrender.com/api/user/login', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({email, password: pw})
+            });
+            
+            if(firebaseResponse.ok){
+                const firebaseData = await firebaseResponse.json();
+                if(firebaseData.success){
+                    // User approved in Firebase
+                    await notifyDesktopApp(firebaseData.user);
+                    showLoginSuccess();
+                    return;
+                }
+            }
+            
+            // Fallback to localStorage
+            const activeUsers = JSON.parse(localStorage.getItem('activeUsers')||'[]');
+            const approvedUser = activeUsers.find(user => 
+              user.email && user.email.toLowerCase() === email && 
+              user.password === pw
+            );
+        
+        if(!approvedUser){ 
+          // Show error for invalid credentials
+          const emailInput = document.querySelector('#loginForm input[type="email"]');
+          const passwordInput = document.getElementById('password');
+          
+          emailInput.style.borderColor = '#ef4444';
+          passwordInput.style.borderColor = '#ef4444';
+          
+          showError('Invalid email or password. Please contact admin if you need an account.');
+          
+          // Clear error after 3 seconds
+          setTimeout(() => {
+            emailInput.style.borderColor = '';
+            passwordInput.style.borderColor = '';
+          }, 3000);
+          return; 
+        }
+        
+        // Check if account is still valid (not expired)
+        if(approvedUser.expiry && approvedUser.expiry !== ''){
+          const expiryDate = new Date(approvedUser.expiry);
+          const currentDate = new Date();
+          
+          // Normalize both dates to compare only the date part (ignore time)
+          const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+          const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+          
+          if(currentDateOnly > expiryDateOnly){
+            showError('Your account has expired on ' + approvedUser.expiry + '. Please contact admin for renewal.');
+            return;
+          }
+        }
+        
+        // User is approved and valid - proceed with login
+        try{
+          // notify desktop app local server to approve
+          await fetch('http://127.0.0.1:51234/approve', {
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({
+              email: approvedUser.email, 
+              plan: approvedUser.plan || 'basic', 
+              days: approvedUser.days || 180,
+              name: approvedUser.name || '',
+              phone: approvedUser.phone || ''
+            })
+          });
+          
+          // Show success message and redirect to main page
+          const overlay = document.querySelector('.overlay');
+          const dialog = document.querySelector('.dialog');
+          
+          // Create success animation
+          dialog.style.transition = 'all 0.3s ease';
+          dialog.style.transform = 'scale(0.95)';
+          dialog.style.opacity = '0.7';
+          
+          setTimeout(() => {
+            // Hide the modal completely
+            overlay.style.display = 'none';
+            // Redirect to main page
+            window.location.href = 'index.html';
+          }, 300);
+          
+        }catch(e){ 
+          showError('Could not reach desktop app. Keep the app running and try again.'); 
+        }
+        
+      }catch(e){
+        console.error('Error checking active users:', e);
+        showError('System error. Please try again later.');
+      }
+    }
+    
+    async function notifyDesktopApp(user){
+        try{
+            await fetch('http://127.0.0.1:51234/approve', {
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify({
+                    email: user.email, 
+                    plan: user.plan || 'basic', 
+                    days: 180,
+                    name: user.name || '',
+                    phone: user.phone || ''
+                })
+            });
+        }catch(e){ 
+            console.error('Desktop app notification failed:', e);
+        }
+    }
+    
+    function showLoginSuccess(){
+        const overlay = document.querySelector('.overlay');
+        const dialog = document.querySelector('.dialog');
+        
+        dialog.style.transition = 'all 0.3s ease';
+        dialog.style.transform = 'scale(0.95)';
+        dialog.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            window.location.href = 'index.html';
+        }, 300);
+    }
+    
+    function showError(message){
+      // Remove existing error message if any
+      const existingError = document.querySelector('.error-message');
+      if(existingError) existingError.remove();
+      
+      // Create error message element
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.style.cssText = `
+        background: linear-gradient(180deg, #ef4444, #b91c1c);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        animation: slideDown 0.3s ease;
+      `;
+      errorDiv.textContent = message;
+      
+      // Add animation keyframes if not exists
+      if(!document.querySelector('#error-animations')){
+        const style = document.createElement('style');
+        style.id = 'error-animations';
+        style.textContent = `
+          @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // Insert error message at the top of login form
+      const loginForm = document.getElementById('loginForm');
+      const title = loginForm.querySelector('.title');
+      loginForm.insertBefore(errorDiv, title.nextSibling);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if(errorDiv.parentNode) {
+          errorDiv.style.animation = 'slideDown 0.3s ease reverse';
+          setTimeout(() => errorDiv.remove(), 300);
+        }
+      }, 5000);
+    }
+    // Payment selection state
+    let selectedPlan = '';
+    let selectedMethod = '';
+    const accountNumbers = {
+      nagad: '017XXXXXXXX',
+      bkash: '017XXXXXXXX',
+      master: '5111 1111 1111 1111',
+      debit: '4111 1111 1111 1111'
+    };
+    function selectPlan(key){
+      selectedPlan = key;
+      document.querySelectorAll('#paymentForm .plan').forEach(el=>el.classList.remove('selected'));
+      const el = document.getElementById('plan-'+key); if(el) el.classList.add('selected');
+      updatePayCta();
+    }
+    function selectMethod(key){
+      selectedMethod = key;
+      document.querySelectorAll('#paymentForm .method').forEach(el=>el.classList.remove('selected'));
+      const el = document.getElementById('method-'+key); if(el) el.classList.add('selected');
+      updatePayCta();
+    }
+    function updatePayCta(){
+      const btn = document.getElementById('pay-cta');
+      if(btn) btn.disabled = !(selectedPlan && selectedMethod);
+    }
+    function showPayDetails(){
+      if(!(selectedPlan && selectedMethod)) return;
+      document.getElementById('paymentForm').classList.add('hidden');
+      const details = document.getElementById('payDetails');
+      const methodName = {nagad:'নগদ (Nagad)', bkash:'বিকাশ (bKash)', master:'Master Card', debit:'Debit Card'}[selectedMethod] || '';
+      document.getElementById('pd-method').textContent = methodName;
+      const acc = accountNumbers[selectedMethod] || 'N/A';
+      const masked = typeof acc === 'string' ? acc.replace(/.(?=.{4})/g,'•') : acc;
+      const accEl = document.getElementById('pd-acc');
+      accEl.value = masked;
+      accEl.dataset.full = acc;
+      details.classList.remove('hidden');
+    }
+    function backFromDetails(){
+      document.getElementById('payDetails').classList.add('hidden');
+      document.getElementById('paymentForm').classList.remove('hidden');
+    }
+    function copyAcc(){
+      const el = document.getElementById('pd-acc');
+      const txt = el.dataset.full || el.value || '';
+      navigator.clipboard.writeText(txt);
+      alert('Copied: '+txt);
+    }
+    // Show short waiting overlay, then green success modal on top of the page
+    function showWait(){
+      // hide details card
+      document.getElementById('payDetails').classList.add('hidden');
+      // simple wait block (append to body so overlay background doesn't cover it)
+      const wait = document.createElement('div');
+      wait.id = 'tempWait';
+      wait.className = 'center';
+      wait.style.position = 'fixed';
+      wait.style.inset = '0';
+      wait.style.zIndex = '9998';
+      wait.innerHTML = '<div class="stack"><p class="title">Please Wait</p><p class="subtitle">অনুগ্রহ করে অপেক্ষা করুন...</p><div class="spinner"></div></div>';
+      document.body.appendChild(wait);
+      setTimeout(()=>{ const el=document.getElementById('tempWait'); if(el) el.remove(); showSuccess(); }, 800);
+    }
+    function showSuccess(){
+      const plan = (selectedPlan==='premium' ? 'premium' : 'basic');
+      const method = (selectedMethod||'');
+      const trx = encodeURIComponent((document.getElementById('trx-id')||{}).value || '');
+      // Queue request for admin panel (localStorage)
+      try{
+        const fn = (document.getElementById('su-first')||{}).value||'';
+        const ln = (document.getElementById('su-last')||{}).value||'';
+        const name = (fn+' '+ln).trim() || (document.getElementById('su-user')||{}).value || 'Unknown';
+        const emailRaw = (document.getElementById('su-email')||{}).value||'';
+        const email = emailRaw.toString().normalize('NFKC').toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]/g,'');
+        const phone = (document.getElementById('su-phone')||{}).value||'';
+        const req = {name, email, phone, trx: (document.getElementById('trx-id')||{}).value||'', plan, method, created: new Date().toISOString()};
+        const list = JSON.parse(localStorage.getItem('requests')||'[]');
+        list.push(req);
+        localStorage.setItem('requests', JSON.stringify(list));
+      }catch(e){ console.error('queueRequest failed', e); }
+      // Redirect to official page with query so that page shows the success modal on top
+      window.location.href = `index.html?paid=1&plan=${plan}&method=${method}&trx=${trx}`;
+    }
+    
+    // Load settings from admin panel
+    function loadPaymentSettings(){
+      try{
+        const settings = JSON.parse(localStorage.getItem('adminSettings')||'{}');
+        
+        // Update account numbers from admin settings
+        if(settings.bkash) accountNumbers.bkash = settings.bkash;
+        if(settings.nagad) accountNumbers.nagad = settings.nagad;
+        if(settings.debitCard) accountNumbers.debit = settings.debitCard;
+        if(settings.masterCard) accountNumbers.master = settings.masterCard;
+        
+        // Update prices if needed
+        if(settings.price6 && settings.price12){
+          // Update plan prices in payment form
+          const basicPriceEl = document.querySelector('#plan-basic .price');
+          const premiumPriceEl = document.querySelector('#plan-premium .price');
+          if(basicPriceEl) basicPriceEl.textContent = '৳' + settings.price6;
+          if(premiumPriceEl) premiumPriceEl.textContent = '৳' + settings.price12;
+        }
+        
+        console.log('Payment settings loaded:', accountNumbers);
+      }catch(e){
+        console.error('Failed to load payment settings:', e);
+      }
+    }
+    
+    function showSuccessInline(){
+      const vMethod = document.getElementById('pd-method').textContent;
+      const vPlan = (selectedPlan==='premium'?'Premium Plan':'Basic Plan');
+      const vTrx = (document.getElementById('trx-id')||{}).value || '';
+      const wrapper = document.createElement('div');
+      wrapper.id='successView';
+      wrapper.innerHTML = `
+        <div class="success-wrap">
+          <div class="stack">
+            <p class="title" style="margin-bottom:0">পেমেন্ট সফল!</p>
+            <p class="subtitle" style="color:#ecfdf5">আপনার রিকোয়েস্ট গ্রহণ করা হয়েছে</p>
+            <div class="success-card">
+              <div class="success-list">
+                <div><strong>প্যাকেজ:</strong> ${vPlan}</div>
+                <div><strong>মেথড:</strong> ${vMethod}</div>
+                <div><strong>ট্রানজেকশন:</strong> ${vTrx}</div>
+                <div class="note" style="background:#022c22;border:1px solid #064e3b;border-radius:8px;padding:10px">দয়া করে অপেক্ষা করুন। যাচাই সম্পন্ন হলে অ্যাক্সেস প্রদান করা হবে।</div>
+              </div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-danger btn-wide" onclick="this.closest('.dialog').removeChild(this.closest('#successView'));">Delete</button>
+              <button class="btn btn-secondary btn-wide" onclick="this.closest('.dialog').removeChild(this.closest('#successView')); showMenu();">OK</button>
+            </div>
+          </div>
+        </div>`;
+      document.querySelector('.dialog').appendChild(wrapper);
+    }
+    
+    // Call on page load
+    document.addEventListener('DOMContentLoaded', loadPaymentSettings);
+  </script>
+  </head>
+<body>
+  <!-- Background live preview of official page (blurred and non-interactive) -->
+  <iframe class="preview-iframe" src="index.html" title="Preview"></iframe>
+  <div class="overlay">
+    <div class="dialog">
+      <div class="ring-wrap">
+      <svg class="border-ring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+            <stop offset="0%" stop-color="#22c55e" />
+            <stop offset="33%" stop-color="#3b82f6" />
+            <stop offset="66%" stop-color="#ef4444" />
+            <stop offset="100%" stop-color="#22c55e" />
+            <animateTransform attributeName="gradientTransform" attributeType="XML" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="7s" repeatCount="indefinite" />
+          </linearGradient>
+        </defs>
+        <!-- Base green stroke under the animated colors for consistent green look -->
+        <rect x="2" y="2" width="96" height="96" rx="6" fill="none" stroke="rgba(34,197,94,.28)" stroke-width="1.5" />
+        <rect x="2" y="2" width="96" height="96" rx="6" fill="none" stroke="url(#ringGrad)" stroke-width="1.5" stroke-linejoin="round" />
+      </svg>
+      </div>
+
+      <div id="guestForm" class="hidden">
+        <p class="title">Guest Access</p>
+        <p class="subtitle">ফ্রি এক্সপেরিমেন্ট/ট্রায়ালের জন্য</p>
+        <div class="stack">
+          <input id="guest-name" class="input" type="text" placeholder="Your Name" autocomplete="name" />
+          <input id="guest-email" class="input" type="email" placeholder="Email Address" autocomplete="email" />
+          <input id="guest-phone" class="input" type="tel" placeholder="Phone Number (optional)" autocomplete="tel" />
+          <select id="guest-purpose" class="input" style="color: #0b0b0b;">
+            <option value="">Select Purpose</option>
+            <option value="trial">Free Trial</option>
+            <option value="experiment">Experiment/Testing</option>
+            <option value="demo">Demo/Preview</option>
+            <option value="other">Other</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:8px;color:#a9b1bc;font-size:12px">
+            <input type="checkbox" style="accent-color:#3b47d9" required> I accept limited features as Guest
+          </label>
+          <button class="btn btn-primary" onclick="submitGuestAccount()">SUBMIT GUEST REQUEST</button>
+          <div class="divider"></div>
+          <div class="actions-row">
+            <button class="btn btn-secondary btn-wide" onclick="showMenu()">Back</button>
+            <button class="btn btn-danger btn-wide" onclick="history.back()">Cancel</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="signupForm" class="hidden">
+        <p class="title">Sign Up</p>
+        <div class="stack">
+          <div class="row" style="gap:8px">
+            <input id="su-first" class="input" type="text" placeholder="First Name" style="flex:1" />
+            <input id="su-last" class="input" type="text" placeholder="Last Name" style="flex:1" />
+          </div>
+          <input id="su-email" class="input" type="email" placeholder="Email Address" autocomplete="email" />
+          <input id="su-phone" class="input" type="tel" placeholder="Phone Number" autocomplete="tel" />
+          <input id="su-user" class="input" type="text" placeholder="Username" autocomplete="username" />
+          <div class="input-wrap">
+            <input id="pw1" class="input" type="password" placeholder="Password" autocomplete="new-password" />
+            <button type="button" class="toggle" onclick="(function(){const el=document.getElementById('pw1');el.type=el.type==='password'?'text':'password'})()" aria-label="Show password">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
+            </button>
+          </div>
+          <div class="input-wrap">
+            <input id="pw2" class="input" type="password" placeholder="Confirm Password" autocomplete="new-password" />
+            <button type="button" class="toggle" onclick="(function(){const el=document.getElementById('pw2');el.type=el.type==='password'?'text':'password'})()" aria-label="Show password">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
+            </button>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;color:#a9b1bc;font-size:12px">
+            <input type="checkbox" style="accent-color:#3b47d9"> I agree to the Terms of Service and Privacy Policy
+          </label>
+          <button class="btn btn-primary" onclick="saveAccount()">CREATE ACCOUNT</button>
+          <div class="divider"></div>
+          <div class="actions-row">
+            <button class="btn btn-secondary btn-wide" onclick="showMenu()">Back</button>
+            <button class="btn btn-danger btn-wide" onclick="history.back()">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div id="paymentForm" class="hidden">
+        <p class="title">Payment</p>
+        <div class="plan-grid">
+          <div id="plan-basic" class="plan" onclick="selectPlan('basic')">
+            <h4>Basic Plan</h4>
+            <p class="price">৳5,000</p>
+            <p class="muted-small">6 Months Access</p>
+          </div>
+          <div id="plan-premium" class="plan" onclick="selectPlan('premium')">
+            <h4>Premium Plan</h4>
+            <p class="price">৳10,000</p>
+            <p class="muted-small">Yearly Access</p>
+          </div>
+        </div>
+        <div class="method-grid">
+          <div id="method-nagad" class="method" onclick="selectMethod('nagad')"><span class="icon" aria-hidden="true">
+            <!-- Nagad approx logo: orange rounded tile with white swirl -->
+            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="#f59e0b"/>
+              <path d="M8.5 8.2c1.9-1.1 3.7-.6 4.8.5 1 .9 1.2 2.1.5 3.3-.6 1.1-1.9 1.8-3.4 1.7 1.1-.6 1.7-1.5 1.7-2.4 0-1.5-1.3-2.7-3.6-3.1Z" fill="#fff"/>
+              <path d="M12.2 6.3c1.1.1 2 .5 2.8 1.2.8.7 1.3 1.6 1.4 2.7.1 1.1-.2 2.1-.9 3-.7.9-1.7 1.5-3 1.8-1.3.3-2.5.2-3.6-.3 1.9-.1 3.2-.6 4-1.5.9-1 1.2-2.1 1.1-3.1-.1-1.1-.6-2-1.8-2.8Z" fill="#fff" opacity=".9"/>
+            </svg>
+          </span><div><div>নগদ</div><div class="muted-small">Mobile Banking</div></div></div>
+          <div id="method-bkash" class="method" onclick="selectMethod('bkash')"><span class="icon" aria-hidden="true">
+            <!-- bKash approx logo: origami bird -->
+            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 13l8-8 4 5-4 3-8 0z" fill="#e91e63"/>
+              <path d="M11 18l4-7 6 2-10 5z" fill="#e91e63"/>
+            </svg>
+          </span><div><div>বিকাশ</div><div class="muted-small">Digital Wallet</div></div></div>
+          <div id="method-master" class="method" onclick="selectMethod('master')"><span class="icon" aria-hidden="true">
+            <!-- MasterCard style: two overlapping circles -->
+            <svg width="24" height="20" viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8" fill="#f59e0b"/>
+              <circle cx="24" cy="12" r="8" fill="#2563eb" fill-opacity="0.9"/>
+            </svg>
+          </span><div><div>মাস্টার কার্ড</div><div class="muted-small">Master Card</div></div></div>
+          <div id="method-debit" class="method" onclick="selectMethod('debit')"><span class="icon" aria-hidden="true">
+            <!-- Debit card style: card rectangle with stripe -->
+            <svg width="24" height="20" viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4" width="32" height="16" rx="3" fill="#38bdf8"/>
+              <rect x="2" y="7" width="32" height="3" fill="#0ea5e9"/>
+            </svg>
+          </span><div><div>ডেবিট কার্ড</div><div class="muted-small">Debit Card</div></div></div>
+        </div>
+        <button id="pay-cta" class="pay-cta" onclick="showPayDetails()" disabled>🟡 COMPLETE PAYMENT</button>
+        <div class="divider"></div>
+        <div class="actions-row">
+          <button class="btn btn-secondary btn-wide" onclick="showSignup()">Back</button>
+          <button class="btn btn-danger btn-wide" onclick="showMenu()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="payDetails" class="hidden">
+        <p class="title">Payment Details</p>
+        <p class="subtitle">Please send payment to complete your registration</p>
+        <div class="details-card stack">
+          <div class="row" style="justify-content:space-between">
+            <strong id="pd-method">Method</strong>
+          </div>
+          <div class="stack">
+            <label class="note">Account Number:</label>
+            <div class="copy-row">
+              <input id="pd-acc" class="field" value="" readonly style="flex:1" />
+              <button class="copy-btn" onclick="copyAcc()">Copy Number</button>
+            </div>
+          </div>
+          <div class="stack">
+            <label class="note">Payment Instructions:</label>
+            <ol class="note" style="margin:0 0 8px 16px">
+              <li>উপরে দেয়া নাম্বারে আপনার প্ল্যান অনুসারে টাকা পাঠান</li>
+              <li>পেমেন্ট অ্যাপ থেকে ট্রানজেকশন আইডি কপি করুন</li>
+              <li>নিচে যে নম্বরে পাঠিয়েছেন ও ট্রানজেকশন আইডি দিন</li>
+            </ol>
+            <input id="from-number" class="field" placeholder="যে নাম্বার থেকে পেমেন্ট করেছেন" />
+            <input id="trx-id" class="field" placeholder="ট্রানজেকশন আইডি লিখুন" />
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="actions-row">
+          <button class="btn btn-secondary btn-wide" onclick="backFromDetails()">Back</button>
+          <button class="btn btn-primary btn-wide" onclick="showWait()">Submit Payment</button>
+        </div>
+      </div>
+
+      <div id="menu" class="stack">
+        <button class="btn btn-white" onclick="showLogin()">LOGIN TO ACCOUNT</button>
+        <button class="btn btn-white" onclick="showSignup()">CREATE NEW ACCOUNT</button>
+        <button class="btn btn-white" onclick="showGuest()">CONTINUE AS GUEST</button>
+        <button class="btn btn-danger" onclick="history.back()">CANCEL</button>
+      </div>
+
+      <div id="loginForm" class="hidden">
+        <p class="title">Login</p>
+        <p class="subtitle">লগ ইন টু একাউন্ট</p>
+        <div class="stack">
+          <input class="input" type="email" placeholder="ইমেইল ঠিকানা লিখুন" autocomplete="username" />
+          <div class="input-wrap">
+            <input id="password" class="input" type="password" placeholder="আপনার পাসওয়ার্ড লিখুন" autocomplete="current-password" />
+            <button type="button" class="toggle" onclick="togglePw()" aria-label="Show password">
+              <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:none"><path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/></svg>
+              <svg id="eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 4.27 4.28 3l17 17L20 21l-2.6-2.6A11.3 11.3 0 0 1 12 19c-5 0-9-5-9-7a9.9 9.9 0 0 1 3.4-4.95L3 4.27ZM12 7a5 5 0 0 1 5 5c0 .74-.16 1.45-.44 2.09L9.91 7.44C10.55 7.16 11.26 7 12 7Z"/></svg>
+            </button>
+          </div>
+          <div class="row" style="margin-top:-4px">
+            <label style="display:inline-flex;align-items:center;gap:8px;color:#a9b1bc;font-size:12px">
+              <input type="checkbox" style="accent-color:#3b47d9"> Remember me
+            </label>
+            <a class="mutelink" href="#">Forgot password?</a>
+          </div>
+          <button class="btn btn-primary" onclick="doLogin()">LOGIN</button>
+          <div class="divider"></div>
+          <div class="actions-row">
+            <button class="btn btn-secondary btn-wide" onclick="showMenu()">Back</button>
+            <button class="btn btn-danger btn-wide" onclick="history.back()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

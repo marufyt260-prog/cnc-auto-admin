@@ -1,0 +1,17 @@
+{
+  "name": "CNC Auto Design - Professional CNC Design Software",
+  "short_name": "CNC Auto Design",
+  "description": "Professional CNC design software for wood carving, card design, and automated design creation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#2196F3",
+  "orientation": "any",
+  "icons": [
+    { "src": "./cnc_auto_design.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./cnc_auto_design.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["design", "productivity", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}
