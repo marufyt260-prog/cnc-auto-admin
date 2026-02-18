@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://cncautodesign.netlify.app/sitemap.xml
+
+# Google Bot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing Bot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+# Allow access to assets
+Allow: /cnc_auto_design.png
+Allow: /styles.css
+Allow: /main.js
+
+# Optional: block admin if desired
+# Disallow: /admin.html
