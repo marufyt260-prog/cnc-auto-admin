@@ -1,1 +1,0 @@
-# cnc-auto-admin
